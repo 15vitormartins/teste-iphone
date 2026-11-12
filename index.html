@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teste iPhone</title>
+<style>
+body{font-family:-apple-system,sans-serif;margin:16px;max-width:520px}
+button{font-size:18px;padding:14px;margin:6px 0;width:100%;border-radius:10px;border:1px solid #888}
+pre{background:#eee;padding:8px;white-space:pre-wrap;font-size:13px}
+</style></head><body>
+<h2>Teste de microfone e câmera</h2>
+<p>Toque nos botões, um de cada vez, e mande um print da caixa "Resultado" para o Vitor.</p>
+<button id="b1">1. Gravar 5 s de áudio</button>
+<button id="b2">2. Ditado (reconhecimento de voz)</button>
+<label>3. Foto/vídeo:<input id="f" type="file" accept="image/*,video/*" capture></label>
+<audio id="a" controls style="width:100%;margin-top:8px"></audio>
+<h3>Resultado</h3><pre id="r"></pre>
+<script>
+const r=document.getElementById('r');
+const log=t=>r.textContent+=t+"\n";
+log("Navegador: "+navigator.userAgent);
+log("Modo instalado (tela inicial): "+(navigator.standalone||matchMedia('(display-mode: standalone)').matches));
+log("getUserMedia: "+!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia));
+log("MediaRecorder: "+(typeof MediaRecorder!=='undefined'));
+log("SpeechRecognition: "+!!(window.SpeechRecognition||window.webkitSpeechRecognition));
+document.getElementById('b1').onclick=async()=>{
+ try{
+  const s=await navigator.mediaDevices.getUserMedia({audio:true});
+  const mr=new MediaRecorder(s);const ch=[];
+  mr.ondataavailable=e=>ch.push(e.data);
+  mr.onstop=()=>{s.getTracks().forEach(t=>t.stop());
+   const b=new Blob(ch,{type:mr.mimeType});
+   log("Áudio OK: "+b.size+" bytes, tipo "+mr.mimeType);
+   document.getElementById('a').src=URL.createObjectURL(b)};
+  mr.start();log("Gravando 5 s...");setTimeout(()=>mr.stop(),5000);
+ }catch(e){log("ERRO áudio: "+e.name+" - "+e.message)}
+};
+document.getElementById('b2').onclick=()=>{
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){log("Ditado: não existe neste navegador");return}
+ const rec=new SR();rec.lang='pt-BR';rec.interimResults=true;
+ rec.onresult=e=>log("Ouvi: "+e.results[e.results.length-1][0].transcript);
+ rec.onerror=e=>log("ERRO ditado: "+e.error);
+ rec.onend=()=>log("Ditado terminou");
+ try{rec.start();log("Fale agora...")}catch(e){log("ERRO ditado: "+e.message)}
+};
+document.getElementById('f').onchange=e=>{
+ const f=e.target.files[0];if(f)log("Arquivo OK: "+f.name+" "+f.type+" "+f.size+" bytes")};
+</script></body></html>
