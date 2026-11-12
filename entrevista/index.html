@@ -27,7 +27,10 @@ small{color:#555}
 
 <h3>3. Fotos</h3>
 <select id="campo"><option>Fachada</option><option>Sala</option><option>Cozinha</option><option>Quarto</option><option>Banheiro</option><option>Área externa</option><option>Outra</option></select>
-<input id="fotos" type="file" accept="image/*" multiple>
+<button class="g" onclick="document.getElementById('fotoCam').click()">Tirar foto agora</button>
+<button onclick="document.getElementById('fotos').click()">Escolher da galeria (várias)</button>
+<input id="fotoCam" type="file" accept="image/*" capture="environment" hidden>
+<input id="fotos" type="file" accept="image/jpeg,image/png,image/heic,image/heif,image/webp" multiple hidden>
 <div class="th" id="th"></div>
 
 <h3>Resultado</h3><pre id="log"></pre>
@@ -88,7 +91,7 @@ function reduzir(file){return new Promise((ok,no)=>{const img=new Image(),u=URL.
   c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);
   URL.revokeObjectURL(u);ok(c.toDataURL("image/jpeg",0.65))};
  img.onerror=()=>no(new Error("não consegui abrir a imagem ("+file.type+")"));img.src=u})}
-$("fotos").onchange=async e=>{
+$("fotos").onchange=$("fotoCam").onchange=async e=>{
  for(const f of e.target.files){
   try{const d=await reduzir(f);
    if(d.length>900000){log("Foto "+f.name+" ficou grande ("+d.length+"). Pulei.");continue}
